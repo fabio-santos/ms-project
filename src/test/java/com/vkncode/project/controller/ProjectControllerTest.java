@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -18,6 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@WithMockUser
 public class ProjectControllerTest {
 
     @Autowired
@@ -27,12 +29,18 @@ public class ProjectControllerTest {
     private MockMvc mvc;
 
     @Test
-    public void secretariatSave() throws Exception {
+    public void projectSave() throws Exception {
         MvcResult result;
 
-        String json = "{\"secretary\": \"fabio\", \"underInvestigation\": true, \"destination\": \"INFRASTRUCTURE\",\"populationGrade\": 0}";
+        String json = "{\n" +
+                "    \"secretariat\": 2,\n" +
+                "    \"cost\": 100,\n" +
+                "    \"title\": \"title4\",\n" +
+                "    \"description\": \"description4\",\n" +
+                "    \"destination\": \"EDUCATION\"\n" +
+                "}";
 
-        result = mvc.perform(post("/secretariat")
+        result = mvc.perform(post("/project")
                         .content(json)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
@@ -41,7 +49,7 @@ public class ProjectControllerTest {
 
         JSONObject secretariatSaved = new JSONObject(result.getResponse().getContentAsString());
 
-        result = mvc.perform(get("/secretariat/" + secretariatSaved.get("id"))
+        result = mvc.perform(get("/project/" + secretariatSaved.get("id"))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -51,7 +59,7 @@ public class ProjectControllerTest {
         assertNotNull(secretariatSaved);
         assertNotNull(secretariatSearched);
         assertEquals(secretariatSaved.get("id"), secretariatSearched.get("id"));
-        assertEquals(secretariatSaved.get("secretary"), secretariatSearched.get("secretary"));
+        assertEquals(secretariatSaved.get("secretariat"), secretariatSearched.get("secretariat"));
         assertEquals(secretariatSaved.get("destination"), secretariatSearched.get("destination"));
     }
 }
