@@ -7,17 +7,22 @@ import com.vkncode.project.domain.entity.State;
 import com.vkncode.project.domain.repository.ProjectRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 @AllArgsConstructor
+@CacheConfig(cacheNames = "projects")
 public class ProjectService {
 
     private ProjectRepository repository;
     private RabbitTemplate rabbitTemplate;
 
+    @Cacheable(unless = "#result == null")
     public List<Project> get() {
         return repository.findAll();
     }
@@ -26,6 +31,7 @@ public class ProjectService {
         return repository.findById(id).orElseThrow(() -> new RuntimeException(id + " not available"));
     }
 
+    @CacheEvict(allEntries = true)
     public Project saveNew(ProjectDTO projectDTO) {
         Project project = new Project(projectDTO);
         project.setState(State.SENT_TO_VALIDATION);
@@ -37,19 +43,23 @@ public class ProjectService {
         return project;
     }
 
+    @CacheEvict(allEntries = true)
     public Project update(ProjectDTO projectDTO) {
         Project project = new Project(projectDTO);
         return repository.save(project);
     }
 
+    @CacheEvict(allEntries = true)
     public Project update(Project project) {
         return repository.save(project);
     }
 
+    @CacheEvict(allEntries = true)
     public void delete(Long id) {
         repository.deleteById(id);
     }
 
+    @CacheEvict(allEntries = true)
     public void reprocess(Long id) {
         Project project = repository.findById(id).orElseThrow(() -> new RuntimeException(id + " not available"));
 
